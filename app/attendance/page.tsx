@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +16,7 @@ export default function AttendancePage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('all');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const router = useRouter();
 
   const filteredRecords = attendanceRecords.filter((record) => {
     const matchesSearch = record.studentName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -67,7 +69,11 @@ export default function AttendancePage() {
                 <p className="text-gray-600 mt-1">Manage and track student attendance</p>
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" className="gap-2">
+                <Button
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => router.push('/exportAttendance')}
+                >
                   <Download className="h-4 w-4" />
                   Export
                 </Button>

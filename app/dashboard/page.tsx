@@ -56,7 +56,7 @@ export default function DashboardPage() {
     },
     {
       title: 'Monthly Revenue',
-      value: '$2,750',
+      value: 'Rs2,750', // changed from $ to Rs
       icon: TrendingUp,
       description: '+12% from last month',
       color: 'text-purple-600',
