@@ -1,46 +1,76 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { getCurrentUser, isAdmin } from '@/lib/auth';
-import { Sidebar } from '@/components/layout/sidebar';
-import { Header } from '@/components/layout/header';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { mockCourses } from '@/lib/mock-data';
-import { UserPlus } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getCurrentUser, isAdmin } from "@/lib/auth";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import { mockCourses } from "@/lib/mock-data";
+import { UserPlus } from "lucide-react";
+
+interface MemberPayload {
+  fullName: string;
+  email: string;
+  phone: string;
+  course: string;
+  emergencyContact: string;
+  address: string;
+}
+
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  course: string;
+  address: string;
+  emergencyContact: string;
+}
 
 export default function AddMemberPage() {
   const router = useRouter();
   const user = getCurrentUser();
   const userIsAdmin = isAdmin();
   const { toast } = useToast();
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    course: '',
-    address: '',
-    emergencyContact: '',
+
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    email: "",
+    phone: "",
+    course: "",
+    address: "",
+    emergencyContact: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      router.push("/login");
     } else if (!userIsAdmin) {
-      router.push('/dashboard');
+      router.push("/dashboard");
     }
   }, [user, userIsAdmin, router]);
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: keyof FormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,39 +78,49 @@ export default function AddMemberPage() {
     setIsSubmitting(true);
 
     try {
-      // In a real app, this would make an API call
-      const newMember = {
-        id: Date.now().toString(),
-        ...formData,
-        joinDate: new Date().toISOString().split('T')[0],
-        status: 'active' as const,
-        qrCode: `MEMBER_${Date.now()}_${formData.name.toUpperCase().replace(/\s+/g, '_')}`,
+      const payload: MemberPayload = {
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        course: formData.course,
+        emergencyContact: formData.emergencyContact,
+        address: formData.address,
       };
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch("http://localhost:8080/api/members", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to register member");
+      }
+
+      const newMember = await response.json();
       toast({
         title: "Member added successfully",
-        description: `${formData.name} has been registered with QR code: ${newMember.qrCode}`,
+        description: `${newMember.fullName} has been registered.`,
       });
 
-      // Reset form
       setFormData({
-        name: '',
-        email: '',
-        phone: '',
-        course: '',
-        address: '',
-        emergencyContact: '',
+        name: "",
+        email: "",
+        phone: "",
+        course: "",
+        address: "",
+        emergencyContact: "",
       });
 
-      // Redirect to members page
-      router.push('/members');
-    } catch (error) {
+      router.push("/members");
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to add member. Please try again.",
+        description:
+          error.message || "Failed to add member. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -94,10 +134,10 @@ export default function AddMemberPage() {
     <div className="min-h-screen bg-background">
       <div className="flex">
         <Sidebar className="w-64 hidden lg:block" />
-        
+
         <div className="flex-1">
           <Header />
-          
+
           <main className="p-6">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Add New Member</h1>
@@ -114,7 +154,8 @@ export default function AddMemberPage() {
                     Member Registration
                   </CardTitle>
                   <CardDescription>
-                    Fill in the member details to create a new account and generate QR code
+                    Fill in the member details to create a new account and
+                    generate QR code
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -125,81 +166,107 @@ export default function AddMemberPage() {
                         <Input
                           id="name"
                           value={formData.name}
-                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("name", e.target.value)
+                          }
                           placeholder="Enter full name"
                           required
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="email">Email Address *</Label>
                         <Input
                           id="email"
                           type="email"
                           value={formData.email}
-                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("email", e.target.value)
+                          }
                           placeholder="Enter email address"
                           required
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number *</Label>
                         <Input
                           id="phone"
                           value={formData.phone}
-                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange("phone", e.target.value)
+                          }
                           placeholder="Enter phone number"
                           required
                         />
                       </div>
-                      
+
                       <div className="space-y-2">
                         <Label htmlFor="course">Course *</Label>
-                        <Select value={formData.course} onValueChange={(value) => handleInputChange('course', value)}>
+                        <Select
+                          value={formData.course}
+                          onValueChange={(value) =>
+                            handleInputChange("course", value)
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select a course" />
                           </SelectTrigger>
                           <SelectContent>
-                            {mockCourses.map(course => (
-                              <SelectItem key={course.id} value={course.name}>
-                                {course.name}
-                              </SelectItem>
-                            ))}
+                            {mockCourses
+                              .filter((course) => course.name.trim() !== "")
+                              .map((course) => (
+                                <SelectItem key={course.id} value={course.name}>
+                                  {course.name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       <div className="space-y-2">
-                        <Label htmlFor="emergencyContact">Emergency Contact</Label>
+                        <Label htmlFor="emergencyContact">
+                          Emergency Contact
+                        </Label>
                         <Input
                           id="emergencyContact"
                           value={formData.emergencyContact}
-                          onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "emergencyContact",
+                              e.target.value
+                            )
+                          }
                           placeholder="Enter emergency contact number"
                         />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="address">Address</Label>
                       <Textarea
                         id="address"
                         value={formData.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange("address", e.target.value)
+                        }
                         placeholder="Enter full address"
                         rows={3}
                       />
                     </div>
-                    
+
                     <div className="flex gap-4">
-                      <Button type="submit" disabled={isSubmitting} className="flex-1">
-                        {isSubmitting ? 'Adding Member...' : 'Add Member'}
+                      <Button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="flex-1"
+                      >
+                        {isSubmitting ? "Adding Member..." : "Add Member"}
                       </Button>
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => router.push('/members')}
+                        onClick={() => router.push("/members")}
                         className="flex-1"
                       >
                         Cancel

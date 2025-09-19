@@ -9,54 +9,79 @@ import { MemberCard } from '@/components/member-card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { mockMembers } from '@/lib/mock-data';
-import { Member } from '@/lib/types';
 import { Search, Filter, UserPlus } from 'lucide-react';
 import Link from 'next/link';
+
+// Define the type for members, based on your Spring Boot entity
+interface MemberFromBackend {
+  id: number;
+  fullName: string;
+  email: string;
+  phone: string;
+  course: string;
+  emergencyContact: string;
+  address: string;
+}
 
 export default function MembersPage() {
   const router = useRouter();
   const user = getCurrentUser();
   const userIsAdmin = isAdmin();
-  const [members, setMembers] = useState<Member[]>(mockMembers);
+  
+  // State to hold data fetched from the backend
+  const [members, setMembers] = useState<MemberFromBackend[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [courseFilter, setCourseFilter] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Function to fetch all members from your Spring Boot backend
+  const fetchMembers = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('http://localhost:8080/api/members');
+      if (!response.ok) {
+        throw new Error('Failed to fetch members');
+      }
+      const data: MemberFromBackend[] = await response.json();
+      setMembers(data);
+    } catch (err: any) {
+      console.error('Error fetching members:', err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // This effect runs on component mount to fetch data
   useEffect(() => {
     if (!user) {
       router.push('/login');
     } else if (!userIsAdmin) {
       router.push('/dashboard');
+    } else {
+      fetchMembers();
     }
   }, [user, userIsAdmin, router]);
 
-  useEffect(() => {
-    let filtered = mockMembers;
+  // Filtering logic that works on the fetched data
+  const filteredMembers = members.filter(member => {
+    const matchesSearch = member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          member.course.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all'; // Status is not provided by your backend
+    const matchesCourse = courseFilter === 'all' || member.course === courseFilter;
 
-    if (searchTerm) {
-      filtered = filtered.filter(member =>
-        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.course.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+    return matchesSearch && matchesStatus && matchesCourse;
+  });
 
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(member => member.status === statusFilter);
-    }
-
-    if (courseFilter !== 'all') {
-      filtered = filtered.filter(member => member.course === courseFilter);
-    }
-
-    setMembers(filtered);
-  }, [searchTerm, statusFilter, courseFilter]);
+  const uniqueCourses = Array.from(new Set(members.map(m => m.course)));
 
   if (!user || !userIsAdmin) return null;
-
-  const uniqueCourses = Array.from(new Set(mockMembers.map(m => m.course)));
-
+  
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
@@ -95,7 +120,7 @@ export default function MembersPage() {
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <Filter className="mr-2 h-4 w-4" />
-                  <SelectValue />
+                  <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
@@ -106,7 +131,7 @@ export default function MembersPage() {
               
               <Select value={courseFilter} onValueChange={setCourseFilter}>
                 <SelectTrigger className="w-full sm:w-[200px]">
-                  <SelectValue />
+                  <SelectValue placeholder="All Courses" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Courses</SelectItem>
@@ -117,24 +142,37 @@ export default function MembersPage() {
               </Select>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {members.map((member) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  onViewDetails={() => {
-                    // Navigate to member detail page
-                    router.push(`/members/${member.id}`);
-                  }}
-                  onGenerateQR={() => {
-                    // Show QR code modal or navigate to QR page
-                    alert(`QR Code for ${member.name}: ${member.qrCode}`);
-                  }}
-                />
-              ))}
-            </div>
+            {isLoading && (
+              <div className="text-center py-12">
+                <p>Loading members...</p>
+              </div>
+            )}
 
-            {members.length === 0 && (
+            {error && (
+              <div className="text-center py-12 text-red-500">
+                <p>Error: {error}</p>
+                <Button onClick={fetchMembers} className="mt-4">Try Again</Button>
+              </div>
+            )}
+            
+            {!isLoading && !error && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredMembers.map((member) => (
+                  <MemberCard
+                    key={member.id}
+                    member={member}
+                    onViewDetails={() => {
+                      router.push(`/members/${member.id}`);
+                    }}
+                    onGenerateQR={() => {
+                      alert(`QR Code for ${member.fullName}: A QR code would be generated here.`);
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+
+            {!isLoading && !error && filteredMembers.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">No members found matching your criteria.</p>
               </div>
