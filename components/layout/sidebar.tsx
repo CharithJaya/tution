@@ -11,6 +11,7 @@ import {
   UserPlus,
   BarChart3,
   Calendar,
+  CalendarDays, 
   Settings,
   BookOpen,
   Clock,
@@ -26,15 +27,16 @@ export function Sidebar({ className }: SidebarProps) {
   const userIsAdmin = isAdmin();
 
   const adminNavItems = [
-    { href: '/dashboard', icon: Home, label: 'Dashboard' },
-    { href: '/members', icon: Users, label: 'Members' },
-    { href: '/attendance', icon: Clock, label: 'Attendance' },
-    { href: '/qr-scanner', icon: QrCode, label: 'QR Scanner' },
-    { href: '/add-member', icon: UserPlus, label: 'Add Member' },
-    { href: '/courses', icon: BookOpen, label: 'Courses' },
-    { href: '/analytics', icon: BarChart3, label: 'Analytics' },
-    { href: '/calendar', icon: Calendar, label: 'Calendar' },
-    { href: '/settings', icon: Settings, label: 'Settings' },
+  { href: '/dashboard', icon: Home, label: 'Dashboard' },
+  { href: '/members', icon: Users, label: 'Members' },
+  { href: '/attendance', icon: Clock, label: 'Attendance' },
+  { href: '/qr-scanner', icon: QrCode, label: 'QR Scanner' },
+  { href: '/add-member', icon: UserPlus, label: 'Add Member' },
+  { href: '/courses', icon: BookOpen, label: 'Courses' },
+  { href: '/analytics', icon: BarChart3, label: 'Analytics' },
+  { href: '/calendar', icon: Calendar, label: 'Calendar' },
+  { href: '/event', icon: CalendarDays, label: 'Event' }, // ✅ updated icon
+  { href: '/settings', icon: Settings, label: 'Settings' },
   ];
 
   const studentNavItems = [

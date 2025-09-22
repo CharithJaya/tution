@@ -1,19 +1,25 @@
 'use client';
 
 import { useState } from 'react';
-import { Sidebar } from '@/components/layout/sidebar'; // ✅ use named import unless you change to default
+import { useRouter } from 'next/navigation'; // ✅ for navigation
+import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { calendarEvents } from '@/lib/data';
-import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  Calendar as CalendarIcon,
+  Clock,
+} from 'lucide-react';
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
-
-  // ... keep your helper functions (getCalendarGrid, navigateMonth, etc.) unchanged ...
+  const router = useRouter(); // ✅ initialize router
 
   const getCalendarGrid = () => {
     const year = currentDate.getFullYear();
@@ -24,7 +30,7 @@ export default function CalendarPage() {
     startDate.setDate(startDate.getDate() - firstDay.getDay());
 
     const grid = [];
-    let currentWeek = [];
+    let currentWeek: Date[] = [];
 
     for (let i = 0; i < 42; i++) {
       const date = new Date(startDate);
@@ -49,7 +55,7 @@ export default function CalendarPage() {
 
   const getEventsForDate = (date: Date) => {
     const dateString = date.toISOString().split('T')[0];
-    return calendarEvents.filter(event => event.date === dateString);
+    return calendarEvents.filter((event) => event.date === dateString);
   };
 
   const getEventTypeColor = (type: string) => {
@@ -81,8 +87,18 @@ export default function CalendarPage() {
   };
 
   const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
 
   const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -109,7 +125,10 @@ export default function CalendarPage() {
                   Schedule and manage your classes and events
                 </p>
               </div>
-              <Button className="gap-2">
+              <Button
+                className="gap-2"
+                onClick={() => router.push('/event')} // ✅ navigate to /event page
+              >
                 <Plus className="h-4 w-4" />
                 Add Event
               </Button>
@@ -122,7 +141,8 @@ export default function CalendarPage() {
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-xl">
-                        {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+                        {monthNames[currentDate.getMonth()]}{' '}
+                        {currentDate.getFullYear()}
                       </CardTitle>
                       <div className="flex gap-2">
                         <Button
@@ -164,7 +184,9 @@ export default function CalendarPage() {
                             <div
                               key={key}
                               className={`min-h-[80px] p-1 border border-gray-200 cursor-pointer transition-colors hover:bg-gray-50 ${
-                                !isCurrentMonth(date) ? 'bg-gray-50 text-gray-400' : ''
+                                !isCurrentMonth(date)
+                                  ? 'bg-gray-50 text-gray-400'
+                                  : ''
                               } ${
                                 isSelected(date) ? 'ring-2 ring-blue-500' : ''
                               } ${isToday(date) ? 'bg-blue-50' : ''}`}
@@ -228,16 +250,21 @@ export default function CalendarPage() {
                             className="p-3 border rounded-lg hover:bg-gray-50 transition-colors"
                           >
                             <div className="flex items-start justify-between mb-2">
-                              <h4 className="font-medium text-gray-900">{event.title}</h4>
+                              <h4 className="font-medium text-gray-900">
+                                {event.title}
+                              </h4>
                               <Badge
                                 variant="secondary"
                                 className={getEventTypeColor(event.type)}
                               >
-                                {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+                                {event.type.charAt(0).toUpperCase() +
+                                  event.type.slice(1)}
                               </Badge>
                             </div>
                             {event.course && (
-                              <p className="text-sm text-gray-600 mb-2">{event.course}</p>
+                              <p className="text-sm text-gray-600 mb-2">
+                                {event.course}
+                              </p>
                             )}
                             <div className="flex items-center gap-2 text-sm text-gray-500">
                               <Clock className="h-4 w-4" />
