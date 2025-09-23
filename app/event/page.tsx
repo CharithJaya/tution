@@ -1,19 +1,45 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { calendarEvents } from '@/lib/data';
 import { ChevronLeft, ChevronRight, Plus, Calendar as CalendarIcon, Clock } from 'lucide-react';
+
+interface Event {
+  id: string;
+  title: string;
+  description?: string;
+  date: string; // yyyy-mm-dd
+  time: string; // HH:mm
+  course?: string;
+  location?: string;
+  type: 'class' | 'exam' | 'meeting' | 'holiday' | 'other';
+}
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [calendarEvents, setCalendarEvents] = useState<Event[]>([]);
   const router = useRouter();
+
+  // ✅ Fetch events from Spring Boot API
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch('http://localhost:8080/api/events'); // change if deployed
+        if (!res.ok) throw new Error('Failed to fetch events');
+        const data: Event[] = await res.json();
+        setCalendarEvents(data);
+      } catch (err) {
+        console.error('Error fetching events:', err);
+      }
+    };
+    fetchEvents();
+  }, []);
 
   // Build calendar grid (6 weeks)
   const getCalendarGrid = () => {

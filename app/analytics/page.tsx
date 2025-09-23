@@ -35,7 +35,7 @@ export default function AnalyticsPage() {
           <div className="p-6 space-y-6">
             {/* Header */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Analytics</h1>
+              <h1 className="text-3xl font-bold text-gray-900">This analytics data is not real. I am still developing it. This only shows an idea of the analytics page</h1>
               <p className="text-gray-600 mt-1">
                 Insights into your tuition class performance
               </p>

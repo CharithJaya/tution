@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -59,15 +59,17 @@ export default function AddMemberPage() {
     address: "",
     emergencyContact: "",
   });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (!user) {
-      router.push("/login");
-    } else if (!userIsAdmin) {
-      router.push("/dashboard");
-    }
-  }, [user, userIsAdmin, router]);
+  // If user is not logged in or not admin, redirect immediately
+  if (!user) {
+    router.push("/login");
+    return null;
+  } else if (!userIsAdmin) {
+    router.push("/dashboard");
+    return null;
+  }
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -89,9 +91,7 @@ export default function AddMemberPage() {
 
       const response = await fetch("http://localhost:8080/api/members", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -119,8 +119,7 @@ export default function AddMemberPage() {
     } catch (error: any) {
       toast({
         title: "Error",
-        description:
-          error.message || "Failed to add member. Please try again.",
+        description: error.message || "Failed to add member. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -128,16 +127,12 @@ export default function AddMemberPage() {
     }
   };
 
-  if (!user || !userIsAdmin) return null;
-
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
         <Sidebar className="w-64 hidden lg:block" />
-
         <div className="flex-1">
           <Header />
-
           <main className="p-6">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Add New Member</h1>
@@ -154,8 +149,7 @@ export default function AddMemberPage() {
                     Member Registration
                   </CardTitle>
                   <CardDescription>
-                    Fill in the member details to create a new account and
-                    generate QR code
+                    Fill in the member details to create a new account
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -216,7 +210,10 @@ export default function AddMemberPage() {
                             {mockCourses
                               .filter((course) => course.name.trim() !== "")
                               .map((course) => (
-                                <SelectItem key={course.id} value={course.name}>
+                                <SelectItem
+                                  key={course.id}
+                                  value={course.name}
+                                >
                                   {course.name}
                                 </SelectItem>
                               ))}

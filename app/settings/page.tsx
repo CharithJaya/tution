@@ -66,7 +66,7 @@ export default function SettingsPage() {
             {/* Header Section */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Setting page is still under development; many functions are not working yet and are pending</h1>
                 <p className="text-gray-600 mt-1">Manage your account and application preferences</p>
               </div>
               <Button onClick={handleSave} className="gap-2">
@@ -145,9 +145,9 @@ export default function SettingsPage() {
                     </div>
                     <div>
                       <Label htmlFor="phone">Phone Number</Label>
-                      <Input
+                     / <Input
                         id="phone"
-                        value={settings.phone}
+                     
                         onChange={(e) => handleSettingChange('phone', e.target.value)}
                       />
                     </div>
@@ -300,9 +300,9 @@ export default function SettingsPage() {
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="en">English</SelectItem>
-                          <SelectItem value="es">Español</SelectItem>
-                          <SelectItem value="fr">Français</SelectItem>
-                          <SelectItem value="de">Deutsch</SelectItem>
+                          <SelectItem value="es">Sinhala</SelectItem>
+                          <SelectItem value="fr">Tamil</SelectItem>
+                      
                         </SelectContent>
                       </Select>
                     </div>

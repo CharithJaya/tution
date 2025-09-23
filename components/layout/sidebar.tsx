@@ -10,7 +10,7 @@ import {
   QrCode,
   UserPlus,
   BarChart3,
-  Calendar,
+ // Calendar,
   CalendarDays, 
   Settings,
   BookOpen,
@@ -34,7 +34,7 @@ export function Sidebar({ className }: SidebarProps) {
   { href: '/add-member', icon: UserPlus, label: 'Add Member' },
   { href: '/courses', icon: BookOpen, label: 'Courses' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
-  { href: '/calendar', icon: Calendar, label: 'Calendar' },
+  //{ href: '/calendar', icon: Calendar, label: 'Calendar' },
   { href: '/event', icon: CalendarDays, label: 'Event' }, // ✅ updated icon
   { href: '/settings', icon: Settings, label: 'Settings' },
   ];

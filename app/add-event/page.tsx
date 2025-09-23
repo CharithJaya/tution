@@ -30,24 +30,37 @@ export default function AddEventPage() {
     type: 'other' as Event['type'],
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newEvent: Event = {
-      id: Date.now().toString(),
+    const newEvent = {
       title: formData.title,
       description: formData.description,
       date: formData.date,
       time: formData.time,
       location: formData.location,
       type: formData.type,
-      createdAt: new Date(),
     };
 
-    // ✅ For now just log (later you can save to backend or localStorage)
-    console.log('New Event:', newEvent);
+    try {
+      const res = await fetch("http://localhost:8080/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newEvent),
+      });
 
-    router.push('/calendar'); // Go back to calendar after saving
+      if (!res.ok) {
+        throw new Error("Failed to save event");
+      }
+
+      const savedEvent = await res.json();
+      console.log("✅ Event saved:", savedEvent);
+
+      router.push("/calendar");
+    } catch (err) {
+      console.error("❌ Error saving event:", err);
+      alert("Failed to save event. Please try again.");
+    }
   };
 
   const handleChange = (
@@ -62,15 +75,9 @@ export default function AddEventPage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
-        {/* Sidebar */}
         <Sidebar className="w-64 hidden lg:block" />
-
-        {/* Main Content */}
         <div className="flex-1">
-          {/* Header */}
           <Header />
-
-          {/* Page Content */}
           <div className="p-6 max-w-3xl mx-auto space-y-6">
             <div className="flex items-center space-x-4">
               <Button
@@ -91,12 +98,8 @@ export default function AddEventPage() {
             <Card className="p-8">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Title */}
                   <div className="md:col-span-2">
-                    <label
-                      htmlFor="title"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
+                    <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                       Event Title *
                     </label>
                     <input
@@ -111,12 +114,8 @@ export default function AddEventPage() {
                     />
                   </div>
 
-                  {/* Date */}
                   <div>
-                    <label
-                      htmlFor="date"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
+                    <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-2">
                       Event Date *
                     </label>
                     <input
@@ -130,12 +129,8 @@ export default function AddEventPage() {
                     />
                   </div>
 
-                  {/* Time */}
                   <div>
-                    <label
-                      htmlFor="time"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
+                    <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-2">
                       Event Time *
                     </label>
                     <input
@@ -149,12 +144,8 @@ export default function AddEventPage() {
                     />
                   </div>
 
-                  {/* Type */}
                   <div>
-                    <label
-                      htmlFor="type"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
+                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
                       Event Type *
                     </label>
                     <select
@@ -173,12 +164,8 @@ export default function AddEventPage() {
                     </select>
                   </div>
 
-                  {/* Location */}
                   <div>
-                    <label
-                      htmlFor="location"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
+                    <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-2">
                       Location *
                     </label>
                     <input
@@ -194,12 +181,8 @@ export default function AddEventPage() {
                   </div>
                 </div>
 
-                {/* Description */}
                 <div>
-                  <label
-                    htmlFor="description"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
+                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
                     Event Description *
                   </label>
                   <textarea
@@ -214,7 +197,6 @@ export default function AddEventPage() {
                   />
                 </div>
 
-                {/* Actions */}
                 <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
                   <Button
                     type="button"
