@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
-// Removed: Card, CardContent, CardHeader, CardTitle, Progress
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,6 @@ const CardContent = dynamic(() => import("@/components/ui/card").then((mod) => m
 const CardHeader = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardHeader), { ssr: false });
 const CardTitle = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardTitle), { ssr: false });
 const Progress = dynamic(() => import("@/components/ui/progress").then((mod) => mod.Progress), { ssr: false });
-
 
 // Dynamic imports for lucide-react icons (no SSR)
 const Search = dynamic(() => import("lucide-react").then((m) => m.Search), { ssr: false });
@@ -57,7 +55,8 @@ export default function CoursesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("https://new-backend-oia8vq.fly.dev/api/courses");
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const res = await fetch(`${apiUrl}/api/courses`);
       if (!res.ok) throw new Error("Failed to fetch courses");
 
       const data = await res.json();
@@ -194,7 +193,7 @@ export default function CoursesPage() {
             )}
 
             {/* Courses Grid */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"> {/* Added wrapper div for grid layout */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {!isLoading &&
                 !error &&
                 filteredCourses.map((course) => {
