@@ -48,7 +48,8 @@ export default function MembersPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetch("http://localhost:8080/api/members");
+      // Updated API URL to deployed backend
+      const response = await fetch("https://new-backend-001.fly.dev/api/members");
       if (!response.ok) throw new Error("Failed to fetch members");
       const data: MemberFromBackend[] = await response.json();
       setMembers(data);
