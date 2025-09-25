@@ -40,7 +40,7 @@ const MemberRegistrationForm = () => {
     setMessage('');
 
     try {
-      const response = await fetch('http://localhost:8080/api/members', {
+      const response = await fetch('https://new-backend-oia8vq.fly.dev/members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
