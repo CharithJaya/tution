@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 
-// ✅ Dynamic imports for lucide-react icons (no SSR)
+// Dynamic imports for lucide-react icons (no SSR)
 const Search = dynamic(() => import("lucide-react").then((m) => m.Search), { ssr: false });
 const Plus = dynamic(() => import("lucide-react").then((m) => m.Plus), { ssr: false });
 const Users = dynamic(() => import("lucide-react").then((m) => m.Users), { ssr: false });
@@ -21,7 +21,6 @@ const BookOpen = dynamic(() => import("lucide-react").then((m) => m.BookOpen), {
 const Edit = dynamic(() => import("lucide-react").then((m) => m.Edit), { ssr: false });
 const Trash2 = dynamic(() => import("lucide-react").then((m) => m.Trash2), { ssr: false });
 
-// Define type to match backend
 interface CourseFromBackend {
   id: number;
   name: string;
@@ -43,11 +42,13 @@ export default function CoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
   const fetchCourses = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("https://new-backend-oia8vq.fly.dev/api/courses");
+      const res = await fetch(`${API_URL}/courses`);
       if (!res.ok) throw new Error("Failed to fetch courses");
 
       const data = await res.json();
@@ -107,11 +108,7 @@ export default function CoursesPage() {
             </Card>
 
             {/* Loading / Error */}
-            {isLoading && (
-              <div className="text-center py-12">
-                <p>Loading courses...</p>
-              </div>
-            )}
+            {isLoading && <div className="text-center py-12">Loading courses...</div>}
             {error && (
               <div className="text-center py-12 text-red-500">
                 <p>Error: {error}</p>
@@ -126,69 +123,61 @@ export default function CoursesPage() {
               <div className="grid gap-4 md:grid-cols-4">
                 {/* Total Courses */}
                 <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-blue-100 rounded-full">
-                        <BookOpen className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Total Courses</p>
-                        <p className="text-2xl font-bold text-gray-900">{courses.length}</p>
-                      </div>
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="p-3 bg-blue-100 rounded-full">
+                      <BookOpen className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Total Courses</p>
+                      <p className="text-2xl font-bold text-gray-900">{courses.length}</p>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Total Students */}
                 <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-green-100 rounded-full">
-                        <Users className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Total Students</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {courses.reduce((sum, c) => sum + (c.students || 0), 0)}
-                        </p>
-                      </div>
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="p-3 bg-green-100 rounded-full">
+                      <Users className="h-6 w-6 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Total Students</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {courses.reduce((sum, c) => sum + (c.students || 0), 0)}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Revenue */}
                 <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-purple-100 rounded-full">
-                        <DollarSign className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Total Revenue</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          Rs{" "}
-                          {courses
-                            .reduce((sum, c) => sum + (c.fee * (c.students || 0)), 0)
-                            .toLocaleString()}
-                        </p>
-                      </div>
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="p-3 bg-purple-100 rounded-full">
+                      <DollarSign className="h-6 w-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Total Revenue</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        Rs{" "}
+                        {courses
+                          .reduce((sum, c) => sum + (c.fee * (c.students || 0)), 0)
+                          .toLocaleString()}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Active Courses */}
                 <Card>
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 bg-orange-100 rounded-full">
-                        <Clock className="h-6 w-6 text-orange-600" />
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Active Courses</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {courses.filter((c) => c.status === "active").length}
-                        </p>
-                      </div>
+                  <CardContent className="p-6 flex items-center gap-4">
+                    <div className="p-3 bg-orange-100 rounded-full">
+                      <Clock className="h-6 w-6 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Active Courses</p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {courses.filter((c) => c.status === "active").length}
+                      </p>
                     </div>
                   </CardContent>
                 </Card>
@@ -260,16 +249,11 @@ export default function CoursesPage() {
                             {course.students}/{course.maxStudents}
                           </span>
                         </div>
-                        <Progress
-                          value={Math.min(Math.max(enrollmentPercentage, 0), 100)}
-                          className="h-2"
-                        />
+                        <Progress value={Math.min(Math.max(enrollmentPercentage, 0), 100)} className="h-2" />
                       </div>
                       <div className="pt-2">
                         <p className="text-sm text-gray-600 mb-2">Schedule</p>
-                        <p className="text-sm font-medium bg-gray-50 px-3 py-2 rounded">
-                          {course.schedule}
-                        </p>
+                        <p className="text-sm font-medium bg-gray-50 px-3 py-2 rounded">{course.schedule}</p>
                       </div>
                     </CardContent>
                   </Card>
