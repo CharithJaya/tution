@@ -55,7 +55,7 @@ export default function CoursesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL ;
       const res = await fetch(`${apiUrl}/api/courses`);
       if (!res.ok) throw new Error("Failed to fetch courses");
 
