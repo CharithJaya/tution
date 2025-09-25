@@ -5,11 +5,21 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Removed: Card, CardContent, CardHeader, CardTitle, Progress
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
+
+// ----------------------------------------------------------------------
+// FIX: Dynamic import with SSR disabled for potentially problematic components
+// ----------------------------------------------------------------------
+
+const Card = dynamic(() => import("@/components/ui/card").then((mod) => mod.Card), { ssr: false });
+const CardContent = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardContent), { ssr: false });
+const CardHeader = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardHeader), { ssr: false });
+const CardTitle = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardTitle), { ssr: false });
+const Progress = dynamic(() => import("@/components/ui/progress").then((mod) => mod.Progress), { ssr: false });
+
 
 // Dynamic imports for lucide-react icons (no SSR)
 const Search = dynamic(() => import("lucide-react").then((m) => m.Search), { ssr: false });
@@ -184,85 +194,87 @@ export default function CoursesPage() {
             )}
 
             {/* Courses Grid */}
-            {!isLoading &&
-              !error &&
-              filteredCourses.map((course) => {
-                const enrollmentPercentage =
-                  course.maxStudents && course.maxStudents > 0
-                    ? ((course.students ?? 0) / course.maxStudents) * 100
-                    : 0;
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"> {/* Added wrapper div for grid layout */}
+              {!isLoading &&
+                !error &&
+                filteredCourses.map((course) => {
+                  const enrollmentPercentage =
+                    course.maxStudents && course.maxStudents > 0
+                      ? ((course.students ?? 0) / course.maxStudents) * 100
+                      : 0;
 
-                return (
-                  <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg mb-2">{course.name}</CardTitle>
-                          <Badge
-                            variant={course.status === "active" ? "default" : "secondary"}
-                            className={
-                              course.status === "active"
-                                ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                            }
-                          >
-                            {course.status
-                              ? course.status.charAt(0).toUpperCase() + course.status.slice(1)
-                              : "Unknown"}
-                          </Badge>
+                  return (
+                    <Card key={course.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg mb-2">{course.name}</CardTitle>
+                            <Badge
+                              variant={course.status === "active" ? "default" : "secondary"}
+                              className={
+                                course.status === "active"
+                                  ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                              }
+                            >
+                              {course.status
+                                ? course.status.charAt(0).toUpperCase() + course.status.slice(1)
+                                : "Unknown"}
+                            </Badge>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-gray-600">{course.description}</p>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-600">Instructor:</span>
+                            <span className="font-medium">{course.instructorName}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-600">Duration:</span>
+                            <span className="font-medium">{course.duration}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <DollarSign className="h-4 w-4 text-gray-400" />
+                            <span className="text-gray-600">Fee:</span>
+                            <span className="font-medium">Rs {course.fee}</span>
+                          </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-sm text-gray-600">{course.description}</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Users className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600">Instructor:</span>
-                          <span className="font-medium">{course.instructorName}</span>
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-gray-600">Enrollment</span>
+                            <span className="font-medium">
+                              {course.students ?? 0}/{course.maxStudents ?? 0}
+                            </span>
+                          </div>
+                          <Progress
+                            value={Math.min(Math.max(enrollmentPercentage, 0), 100)}
+                            max={100}
+                            className="h-2"
+                          />
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Clock className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600">Duration:</span>
-                          <span className="font-medium">{course.duration}</span>
+                        <div className="pt-2">
+                          <p className="text-sm text-gray-600 mb-2">Schedule</p>
+                          <p className="text-sm font-medium bg-gray-50 px-3 py-2 rounded">
+                            {course.schedule}
+                          </p>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <DollarSign className="h-4 w-4 text-gray-400" />
-                          <span className="text-gray-600">Fee:</span>
-                          <span className="font-medium">Rs {course.fee}</span>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Enrollment</span>
-                          <span className="font-medium">
-                            {course.students ?? 0}/{course.maxStudents ?? 0}
-                          </span>
-                        </div>
-                        <Progress
-                          value={Math.min(Math.max(enrollmentPercentage, 0), 100)}
-                          max={100} // <- important fix
-                          className="h-2"
-                        />
-                      </div>
-                      <div className="pt-2">
-                        <p className="text-sm text-gray-600 mb-2">Schedule</p>
-                        <p className="text-sm font-medium bg-gray-50 px-3 py-2 rounded">
-                          {course.schedule}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+            </div>
 
             {!isLoading && !error && filteredCourses.length === 0 && (
               <div className="text-center py-12">
