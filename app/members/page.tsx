@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -24,19 +24,8 @@ interface MemberFromBackend {
 
 export default function MembersPage() {
   const router = useRouter();
-  const user = getCurrentUser();
-  const userIsAdmin = isAdmin();
-
-  // Immediate redirect if not logged in or not admin
-  if (!user) {
-    router.push("/login");
-    return null;
-  }
-  if (!userIsAdmin) {
-    router.push("/dashboard");
-    return null;
-  }
-
+  const [user, setUser] = useState(getCurrentUser());
+  const [userIsAdmin, setUserIsAdmin] = useState(isAdmin());
   const [members, setMembers] = useState<MemberFromBackend[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -44,12 +33,20 @@ export default function MembersPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Safe client-side redirect
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    } else if (!userIsAdmin) {
+      router.push("/dashboard");
+    }
+  }, [user, userIsAdmin, router]);
+
   const fetchMembers = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      // Updated API URL to deployed backend
-      const response = await fetch("https://new-backend-001.fly.dev/api/members");
+      const response = await fetch("https://new-backend-oia8vq.fly.dev/api/members");
       if (!response.ok) throw new Error("Failed to fetch members");
       const data: MemberFromBackend[] = await response.json();
       setMembers(data);
@@ -61,13 +58,12 @@ export default function MembersPage() {
     }
   };
 
-  // Filtering logic
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
       member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.course.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all"; // status not in backend
+    const matchesStatus = statusFilter === "all";
     const matchesCourse = courseFilter === "all" || member.course === courseFilter;
     return matchesSearch && matchesStatus && matchesCourse;
   });
