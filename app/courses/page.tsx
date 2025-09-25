@@ -11,15 +11,15 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 
-// ✅ Dynamic imports for lucide-react icons
-const Search = dynamic(() => import("lucide-react").then((m) => m.Search));
-const Plus = dynamic(() => import("lucide-react").then((m) => m.Plus));
-const Users = dynamic(() => import("lucide-react").then((m) => m.Users));
-const Clock = dynamic(() => import("lucide-react").then((m) => m.Clock));
-const DollarSign = dynamic(() => import("lucide-react").then((m) => m.DollarSign));
-const BookOpen = dynamic(() => import("lucide-react").then((m) => m.BookOpen));
-const Edit = dynamic(() => import("lucide-react").then((m) => m.Edit));
-const Trash2 = dynamic(() => import("lucide-react").then((m) => m.Trash2));
+// ✅ Dynamic imports for lucide-react icons (no SSR)
+const Search = dynamic(() => import("lucide-react").then((m) => m.Search), { ssr: false });
+const Plus = dynamic(() => import("lucide-react").then((m) => m.Plus), { ssr: false });
+const Users = dynamic(() => import("lucide-react").then((m) => m.Users), { ssr: false });
+const Clock = dynamic(() => import("lucide-react").then((m) => m.Clock), { ssr: false });
+const DollarSign = dynamic(() => import("lucide-react").then((m) => m.DollarSign), { ssr: false });
+const BookOpen = dynamic(() => import("lucide-react").then((m) => m.BookOpen), { ssr: false });
+const Edit = dynamic(() => import("lucide-react").then((m) => m.Edit), { ssr: false });
+const Trash2 = dynamic(() => import("lucide-react").then((m) => m.Trash2), { ssr: false });
 
 // Define type to match backend
 interface CourseFromBackend {
@@ -43,12 +43,11 @@ export default function CoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  // Fetch courses from backend
   const fetchCourses = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch("http://localhost:8080/api/courses");
+      const res = await fetch("https://new-backend-oia8vq.fly.dev/api/courses");
       if (!res.ok) throw new Error("Failed to fetch courses");
 
       const data = await res.json();
@@ -84,9 +83,7 @@ export default function CoursesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">Courses</h1>
-                <p className="text-gray-600 mt-1">
-                  Manage your courses and curriculum
-                </p>
+                <p className="text-gray-600 mt-1">Manage your courses and curriculum</p>
               </div>
               <Button className="gap-2" onClick={() => router.push("/addCoursePage")}>
                 <Plus className="h-4 w-4" />
@@ -136,9 +133,7 @@ export default function CoursesPage() {
                       </div>
                       <div>
                         <p className="text-sm text-gray-600">Total Courses</p>
-                        <p className="text-2xl font-bold text-gray-900">
-                          {courses.length}
-                        </p>
+                        <p className="text-2xl font-bold text-gray-900">{courses.length}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -201,92 +196,90 @@ export default function CoursesPage() {
             )}
 
             {/* Courses Grid */}
-            {!isLoading && !error && (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredCourses.map((course) => {
-                  const enrollmentPercentage =
-                    (course.students / course.maxStudents) * 100;
+            {!isLoading &&
+              !error &&
+              filteredCourses.length > 0 &&
+              filteredCourses.map((course) => {
+                const enrollmentPercentage =
+                  course.maxStudents && course.maxStudents > 0
+                    ? (course.students / course.maxStudents) * 100
+                    : 0;
 
-                  return (
-                    <Card key={course.id} className="hover:shadow-lg transition-shadow">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg mb-2">{course.name}</CardTitle>
-                            <Badge
-                              variant={course.status === "active" ? "default" : "secondary"}
-                              className={
-                                course.status === "active"
-                                  ? "bg-green-100 text-green-800 hover:bg-green-200"
-                                  : "bg-gray-100 text-gray-800 hover:bg-gray-200"
-                              }
-                            >
-                              {course.status
-                                ? course.status.charAt(0).toUpperCase() + course.status.slice(1)
-                                : "Unknown"}
-                            </Badge>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-red-600"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                return (
+                  <Card key={course.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <CardTitle className="text-lg mb-2">{course.name}</CardTitle>
+                          <Badge
+                            variant={course.status === "active" ? "default" : "secondary"}
+                            className={
+                              course.status === "active"
+                                ? "bg-green-100 text-green-800 hover:bg-green-200"
+                                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                            }
+                          >
+                            {course.status
+                              ? course.status.charAt(0).toUpperCase() + course.status.slice(1)
+                              : "Unknown"}
+                          </Badge>
                         </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-sm text-gray-600">{course.description}</p>
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Users className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-600">Instructor:</span>
-                            <span className="font-medium">{course.instructorName}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Clock className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-600">Duration:</span>
-                            <span className="font-medium">{course.duration}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <DollarSign className="h-4 w-4 text-gray-400" />
-                            <span className="text-gray-600">Fee:</span>
-                            <span className="font-medium">Rs {course.fee}</span>
-                          </div>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-gray-600">Enrollment</span>
-                            <span className="font-medium">
-                              {course.students}/{course.maxStudents}
-                            </span>
-                          </div>
-                          <Progress value={enrollmentPercentage} className="h-2" />
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-gray-600">{course.description}</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="h-4 w-4 text-gray-400" />
+                          <span className="text-gray-600">Instructor:</span>
+                          <span className="font-medium">{course.instructorName}</span>
                         </div>
-                        <div className="pt-2">
-                          <p className="text-sm text-gray-600 mb-2">Schedule</p>
-                          <p className="text-sm font-medium bg-gray-50 px-3 py-2 rounded">
-                            {course.schedule}
-                          </p>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <span className="text-gray-600">Duration:</span>
+                          <span className="font-medium">{course.duration}</span>
                         </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+                        <div className="flex items-center gap-2 text-sm">
+                          <DollarSign className="h-4 w-4 text-gray-400" />
+                          <span className="text-gray-600">Fee:</span>
+                          <span className="font-medium">Rs {course.fee}</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Enrollment</span>
+                          <span className="font-medium">
+                            {course.students}/{course.maxStudents}
+                          </span>
+                        </div>
+                        <Progress
+                          value={Math.min(Math.max(enrollmentPercentage, 0), 100)}
+                          className="h-2"
+                        />
+                      </div>
+                      <div className="pt-2">
+                        <p className="text-sm text-gray-600 mb-2">Schedule</p>
+                        <p className="text-sm font-medium bg-gray-50 px-3 py-2 rounded">
+                          {course.schedule}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
 
             {!isLoading && !error && filteredCourses.length === 0 && (
               <div className="text-center py-12">
                 <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No courses found
-                </h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No courses found</h3>
                 <p className="text-gray-600">
                   Try adjusting your search criteria or add a new course.
                 </p>
