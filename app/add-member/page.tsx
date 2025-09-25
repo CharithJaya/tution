@@ -24,7 +24,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { mockCourses } from "@/lib/mock-data";
 import { UserPlus } from "lucide-react";
 
 interface MemberPayload {
@@ -45,6 +44,18 @@ interface FormData {
   emergencyContact: string;
 }
 
+interface Course {
+  id: number;
+  name: string;
+  subject: string;
+  instructorName: string;
+  fee: number;
+  schedule: string;
+  duration: string;
+  description: string;
+  createdAt: string;
+}
+
 export default function AddMemberPage() {
   const router = useRouter();
   const user = getCurrentUser();
@@ -62,8 +73,10 @@ export default function AddMemberPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
 
-  // Defer the redirect logic until the component has mounted on the client
+  // Redirect check
   useEffect(() => {
     if (!user) {
       router.push("/login");
@@ -73,6 +86,31 @@ export default function AddMemberPage() {
       setIsLoading(false);
     }
   }, [user, userIsAdmin, router]);
+
+  // Fetch courses from API
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/api/courses`
+        );
+        if (!res.ok) throw new Error("Failed to fetch courses");
+        const data = await res.json();
+        setCourses(data.content || []); // API returns { content: [...] }
+      } catch (error) {
+        console.error(error);
+        toast({
+          title: "Error",
+          description: "Could not load courses",
+          variant: "destructive",
+        });
+      } finally {
+        setCoursesLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, [toast]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -92,11 +130,14 @@ export default function AddMemberPage() {
         address: formData.address,
       };
 
-      const response = await fetch("https://new-backend-oia8vq.fly.dev/api/members", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/members`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -215,19 +256,23 @@ export default function AddMemberPage() {
                           }
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Select a course" />
+                            <SelectValue
+                              placeholder={
+                                coursesLoading
+                                  ? "Loading courses..."
+                                  : "Select a course"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
-                            {mockCourses
-                              .filter((course) => course.name.trim() !== "")
-                              .map((course) => (
-                                <SelectItem
-                                  key={course.id}
-                                  value={course.name}
-                                >
-                                  {course.name}
-                                </SelectItem>
-                              ))}
+                            {courses.map((course) => (
+                              <SelectItem
+                                key={course.id}
+                                value={course.name}
+                              >
+                                {course.name}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
