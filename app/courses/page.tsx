@@ -21,6 +21,7 @@ const BookOpen = dynamic(() => import("lucide-react").then((m) => m.BookOpen), {
 const Edit = dynamic(() => import("lucide-react").then((m) => m.Edit), { ssr: false });
 const Trash2 = dynamic(() => import("lucide-react").then((m) => m.Trash2), { ssr: false });
 
+// Type for backend courses
 interface CourseFromBackend {
   id: number;
   name: string;
@@ -31,8 +32,8 @@ interface CourseFromBackend {
   schedule: string;
   description: string;
   status?: string;
-  students: number;
-  maxStudents: number;
+  students?: number;
+  maxStudents?: number;
 }
 
 export default function CoursesPage() {
@@ -42,13 +43,11 @@ export default function CoursesPage() {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
   const fetchCourses = async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_URL}/courses`);
+      const res = await fetch("https://new-backend-oia8vq.fly.dev/api/courses");
       if (!res.ok) throw new Error("Failed to fetch courses");
 
       const data = await res.json();
@@ -108,7 +107,11 @@ export default function CoursesPage() {
             </Card>
 
             {/* Loading / Error */}
-            {isLoading && <div className="text-center py-12">Loading courses...</div>}
+            {isLoading && (
+              <div className="text-center py-12">
+                <p>Loading courses...</p>
+              </div>
+            )}
             {error && (
               <div className="text-center py-12 text-red-500">
                 <p>Error: {error}</p>
@@ -121,7 +124,6 @@ export default function CoursesPage() {
             {/* Stats */}
             {!isLoading && !error && (
               <div className="grid gap-4 md:grid-cols-4">
-                {/* Total Courses */}
                 <Card>
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 bg-blue-100 rounded-full">
@@ -134,7 +136,6 @@ export default function CoursesPage() {
                   </CardContent>
                 </Card>
 
-                {/* Total Students */}
                 <Card>
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 bg-green-100 rounded-full">
@@ -143,13 +144,12 @@ export default function CoursesPage() {
                     <div>
                       <p className="text-sm text-gray-600">Total Students</p>
                       <p className="text-2xl font-bold text-gray-900">
-                        {courses.reduce((sum, c) => sum + (c.students || 0), 0)}
+                        {courses.reduce((sum, c) => sum + (c.students ?? 0), 0)}
                       </p>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Revenue */}
                 <Card>
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 bg-purple-100 rounded-full">
@@ -160,14 +160,13 @@ export default function CoursesPage() {
                       <p className="text-2xl font-bold text-gray-900">
                         Rs{" "}
                         {courses
-                          .reduce((sum, c) => sum + (c.fee * (c.students || 0)), 0)
+                          .reduce((sum, c) => sum + ((c.fee ?? 0) * (c.students ?? 0)), 0)
                           .toLocaleString()}
                       </p>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* Active Courses */}
                 <Card>
                   <CardContent className="p-6 flex items-center gap-4">
                     <div className="p-3 bg-orange-100 rounded-full">
@@ -187,11 +186,10 @@ export default function CoursesPage() {
             {/* Courses Grid */}
             {!isLoading &&
               !error &&
-              filteredCourses.length > 0 &&
               filteredCourses.map((course) => {
                 const enrollmentPercentage =
                   course.maxStudents && course.maxStudents > 0
-                    ? (course.students / course.maxStudents) * 100
+                    ? ((course.students ?? 0) / course.maxStudents) * 100
                     : 0;
 
                 return (
@@ -246,14 +244,20 @@ export default function CoursesPage() {
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Enrollment</span>
                           <span className="font-medium">
-                            {course.students}/{course.maxStudents}
+                            {course.students ?? 0}/{course.maxStudents ?? 0}
                           </span>
                         </div>
-                        <Progress value={Math.min(Math.max(enrollmentPercentage, 0), 100)} className="h-2" />
+                        <Progress
+                          value={Math.min(Math.max(enrollmentPercentage, 0), 100)}
+                          max={100} // <- important fix
+                          className="h-2"
+                        />
                       </div>
                       <div className="pt-2">
                         <p className="text-sm text-gray-600 mb-2">Schedule</p>
-                        <p className="text-sm font-medium bg-gray-50 px-3 py-2 rounded">{course.schedule}</p>
+                        <p className="text-sm font-medium bg-gray-50 px-3 py-2 rounded">
+                          {course.schedule}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
