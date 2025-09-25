@@ -87,16 +87,14 @@ export default function AddMemberPage() {
     }
   }, [user, userIsAdmin, router]);
 
-  // Fetch courses from API
+  // Fetch courses from Next.js API proxy
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/courses`
-        );
+        const res = await fetch("/api/courses");
         if (!res.ok) throw new Error("Failed to fetch courses");
         const data = await res.json();
-        setCourses(data.content || []); // API returns { content: [...] }
+        setCourses(data.content || []);
       } catch (error) {
         console.error(error);
         toast({
@@ -130,14 +128,11 @@ export default function AddMemberPage() {
         address: formData.address,
       };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/members`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch("/api/members", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
       if (!response.ok) {
         const errorData = await response.json();
