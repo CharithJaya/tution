@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -61,15 +61,18 @@ export default function AddMemberPage() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // If user is not logged in or not admin, redirect immediately
-  if (!user) {
-    router.push("/login");
-    return null;
-  } else if (!userIsAdmin) {
-    router.push("/dashboard");
-    return null;
-  }
+  // Defer the redirect logic until the component has mounted on the client
+  useEffect(() => {
+    if (!user) {
+      router.push("/login");
+    } else if (!userIsAdmin) {
+      router.push("/dashboard");
+    } else {
+      setIsLoading(false);
+    }
+  }, [user, userIsAdmin, router]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -89,7 +92,7 @@ export default function AddMemberPage() {
         address: formData.address,
       };
 
-      const response = await fetch("http://localhost:8080/api/members", {
+      const response = await fetch("https://new-backend-oia8vq.fly.dev/api/members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -126,6 +129,14 @@ export default function AddMemberPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-background">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
