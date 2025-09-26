@@ -43,7 +43,7 @@ export default function AddEventPage() {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/api/events", {
+      const res = await fetch("https://new-backend-oia8vq.fly.dev/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEvent),
