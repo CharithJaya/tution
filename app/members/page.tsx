@@ -2,231 +2,127 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sidebar } from "@/components/layout/sidebar";
+import { Header } from "@/components/layout/header";
+import { MemberCard } from "@/components/member-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { UserPlus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search, Filter, UserPlus } from "lucide-react";
+import Link from "next/link";
 
-interface FormData {
-  name: string;
+interface Member {
+  id: number;
+  fullName: string;
   email: string;
   phone: string;
   course: string;
-  address: string;
   emergencyContact: string;
+  address: string;
 }
 
-const dummyCourses = [
-  { id: 1, name: "Mathematics" },
-  { id: 2, name: "Physics" },
-  { id: 3, name: "Chemistry" },
+const dummyMembers: Member[] = [
+  { id: 1, fullName: "John Doe", email: "john@example.com", phone: "1234567890", course: "Mathematics", emergencyContact: "9876543210", address: "123 Main St" },
+  { id: 2, fullName: "Jane Smith", email: "jane@example.com", phone: "0987654321", course: "Physics", emergencyContact: "1234567890", address: "456 Elm St" },
+  { id: 3, fullName: "Alice Brown", email: "alice@example.com", phone: "5555555555", course: "Chemistry", emergencyContact: "5555555555", address: "789 Oak St" },
 ];
 
-export default function AddMemberPage() {
+export default function MembersPage() {
   const router = useRouter();
-  const { toast } = useToast();
+  const [members, setMembers] = useState<Member[]>(dummyMembers);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [courseFilter, setCourseFilter] = useState<string>("all");
 
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    email: "",
-    phone: "",
-    course: "",
-    address: "",
-    emergencyContact: "",
+  const filteredMembers = members.filter((member) => {
+    const matchesSearch =
+      member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      member.course.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all"; // Assuming dummy data has no status
+    const matchesCourse = courseFilter === "all" || member.course === courseFilter;
+    return matchesSearch && matchesStatus && matchesCourse;
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleInputChange = (field: keyof FormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const response = await fetch("/api/members", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fullName: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          course: formData.course,
-          emergencyContact: formData.emergencyContact,
-          address: formData.address,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to register member");
-      }
-
-      const newMember = await response.json();
-
-      toast({
-        title: "Member added successfully",
-        description: `${newMember.fullName} has been registered.`,
-      });
-
-      setFormData({
-        name: "",
-        email: "",
-        phone: "",
-        course: "",
-        address: "",
-        emergencyContact: "",
-      });
-
-      router.push("/members");
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to add member. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const uniqueCourses = Array.from(new Set(members.map((m) => m.course)));
 
   return (
-    <div className="min-h-screen bg-background flex justify-center items-start p-6">
-      <div className="w-full max-w-2xl">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Member Registration
-            </CardTitle>
-            <CardDescription>
-              Fill in the member details to create a new account
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
-                    placeholder="Enter full name"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) =>
-                      handleInputChange("email", e.target.value)
-                    }
-                    placeholder="Enter email address"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) =>
-                      handleInputChange("phone", e.target.value)
-                    }
-                    placeholder="Enter phone number"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="course">Course *</Label>
-                  <Select
-                    value={formData.course}
-                    onValueChange={(value) => handleInputChange("course", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a course" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {dummyCourses.map((course) => (
-                        <SelectItem key={course.id} value={course.name}>
-                          {course.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                  <Input
-                    id="emergencyContact"
-                    value={formData.emergencyContact}
-                    onChange={(e) =>
-                      handleInputChange("emergencyContact", e.target.value)
-                    }
-                    placeholder="Enter emergency contact number"
-                  />
-                </div>
+    <div className="min-h-screen bg-background">
+      <div className="flex">
+        <Sidebar className="w-64 hidden lg:block" />
+        <div className="flex-1">
+          <Header />
+          <main className="p-6">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-3xl font-bold">Members</h1>
+                <p className="text-muted-foreground mt-1">Manage and view all registered members</p>
               </div>
+              <Button asChild>
+                <Link href="/add-member">
+                  <UserPlus className="mr-2 h-4 w-4" /> Add Member
+                </Link>
+              </Button>
+            </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) =>
-                    handleInputChange("address", e.target.value)
-                  }
-                  placeholder="Enter full address"
-                  rows={3}
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search members by name, email, or course..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
 
-              <div className="flex gap-4">
-                <Button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex-1"
-                >
-                  {isSubmitting ? "Adding Member..." : "Add Member"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push("/members")}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                  <Filter className="mr-2 h-4 w-4" />
+                  <SelectValue placeholder="All Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={courseFilter} onValueChange={setCourseFilter}>
+                <SelectTrigger className="w-full sm:w-[200px]">
+                  <SelectValue placeholder="All Courses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Courses</SelectItem>
+                  {uniqueCourses.map((course) => (
+                    <SelectItem key={course} value={course}>
+                      {course}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {filteredMembers.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredMembers.map((member) => (
+                  <MemberCard
+                    key={member.id}
+                    member={member}
+                    onViewDetails={() => router.push(`/members/${member.id}`)}
+                    onGenerateQR={() =>
+                      alert(`QR Code for ${member.fullName}: A QR code would be generated here.`)
+                    }
+                  />
+                ))}
               </div>
-            </form>
-          </CardContent>
-        </Card>
+            ) : (
+              <p className="text-center py-12 text-muted-foreground">
+                No members found matching your criteria.
+              </p>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );
