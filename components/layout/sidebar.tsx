@@ -10,7 +10,8 @@ import {
   QrCode,
   UserPlus,
   BarChart3,
- // Calendar,
+  FileCheck,
+  FileText,
   CalendarDays, 
   Settings,
   BookOpen,
@@ -26,18 +27,19 @@ export function Sidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const userIsAdmin = isAdmin();
 
-  const adminNavItems = [
+const adminNavItems = [
   { href: '/dashboard', icon: Home, label: 'Dashboard' },
   { href: '/members', icon: Users, label: 'Members' },
   { href: '/attendance', icon: Clock, label: 'Attendance' },
   { href: '/qr-scanner', icon: QrCode, label: 'QR Scanner' },
   { href: '/add-member', icon: UserPlus, label: 'Add Member' },
+  { href: '/createInvoice', icon: FileCheck, label: 'Create Invoice' },
+  { href: '/invoices', icon: FileText, label: 'Invoices' },
   { href: '/courses', icon: BookOpen, label: 'Courses' },
   { href: '/analytics', icon: BarChart3, label: 'Analytics' },
-  //{ href: '/calendar', icon: Calendar, label: 'Calendar' },
-  { href: '/event', icon: CalendarDays, label: 'Event' }, // ✅ updated icon
+  { href: '/event', icon: CalendarDays, label: 'Event' },
   { href: '/settings', icon: Settings, label: 'Settings' },
-  ];
+];
 
   const studentNavItems = [
     { href: '/dashboard', icon: Home, label: 'Dashboard' },
