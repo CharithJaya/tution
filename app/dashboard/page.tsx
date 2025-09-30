@@ -56,7 +56,7 @@ export default function DashboardPage() {
     },
     {
       title: 'Monthly Revenue',
-      value: 'Rs2,750', // changed from $ to Rs
+      value: 'Rs2,750',
       icon: TrendingUp,
       description: '+12% from last month',
       color: 'text-purple-600',
@@ -82,13 +82,17 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="flex">
+    <div
+      className="min-h-screen bg-cover bg-center"
+      style={{
+        backgroundImage: "url('https://www.arena-multimedia.com/wp-content/uploads/2020/07/arena-bg.jpg')",
+      }}
+    >
+      {/* Optional overlay for better readability */}
+      <div className="flex min-h-screen bg-background/80">
         <Sidebar className="w-64 hidden lg:block" />
-        
         <div className="flex-1">
           <Header />
-          
           <main className="p-6">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Dashboard</h1>

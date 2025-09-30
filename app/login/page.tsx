@@ -106,7 +106,7 @@ export default function LoginPage() {
             <p className="text-sm font-medium mb-2">Demo Accounts:</p>
             <div className="space-y-1 text-xs text-muted-foreground">
               <p><strong>Admin:</strong> admin@gmail.com / password</p>
-              <p><strong>Student:</strong> charithjc97@gmail.com / password</p>
+              {/* <p><strong>Student:</strong> charithjc97@gmail.com / password</p> */}
             </div>
           </div>
         </CardContent>

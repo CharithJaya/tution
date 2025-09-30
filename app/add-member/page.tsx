@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
@@ -19,9 +18,9 @@ import {
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus } from "lucide-react";
@@ -36,17 +35,15 @@ interface FormData {
 }
 
 interface Course {
-  id: string;
+  id: number;
   name: string;
 }
 
 export default function AddMemberPage() {
   const router = useRouter();
-  const user = getCurrentUser();
-  const userIsAdmin = isAdmin();
   const { toast } = useToast();
 
-  const [mounted, setMounted] = useState(false); // prevent hydration errors
+  const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -59,16 +56,10 @@ export default function AddMemberPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
 
-  // Mount check for client-only rendering
+  // Prevent hydration issues
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  // Redirect if user is not admin
-  useEffect(() => {
-    if (!user && mounted) router.push("/login");
-    else if (!userIsAdmin && mounted) router.push("/dashboard");
-  }, [user, userIsAdmin, mounted, router]);
 
   // Fetch courses from API
   useEffect(() => {
@@ -77,7 +68,14 @@ export default function AddMemberPage() {
         const res = await fetch("https://new-backend-ve6s7g.fly.dev/api/courses");
         if (!res.ok) throw new Error("Failed to fetch courses");
         const data = await res.json();
-        setCourses(data || []);
+
+        // Normalize response to array
+        let coursesArray: Course[] = [];
+        if (Array.isArray(data)) coursesArray = data;
+        else if (Array.isArray(data.content)) coursesArray = data.content;
+        else coursesArray = [];
+
+        setCourses(coursesArray);
       } catch (err) {
         console.error(err);
         toast({
@@ -89,8 +87,8 @@ export default function AddMemberPage() {
         setCoursesLoading(false);
       }
     };
-    if (mounted) fetchCourses();
-  }, [mounted, toast]);
+    fetchCourses();
+  }, [toast]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -98,8 +96,12 @@ export default function AddMemberPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    if (!formData.course) {
+      toast({ title: "Error", description: "Please select a course", variant: "destructive" });
+      return;
+    }
 
+    setIsSubmitting(true);
     try {
       const payload = {
         fullName: formData.name,
@@ -119,7 +121,7 @@ export default function AddMemberPage() {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("POST Error:", errorText);
-        throw new Error("Failed to register member");
+        throw new Error("Failed to register member. Check unique email and phone.");
       }
 
       const newMember = await response.json();
@@ -157,7 +159,6 @@ export default function AddMemberPage() {
         <Sidebar className="w-64 hidden lg:block" />
         <div className="flex-1">
           <Header />
-
           <main className="p-6">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Add New Member</h1>
@@ -221,7 +222,7 @@ export default function AddMemberPage() {
                           onValueChange={(value) => handleInputChange("course", value)}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder={coursesLoading ? "Loading..." : "Select a course"} />
+                            <SelectValue placeholder={coursesLoading ? "Loading courses..." : "Select a course"} />
                           </SelectTrigger>
                           {!coursesLoading && (
                             <SelectContent>

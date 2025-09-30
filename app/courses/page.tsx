@@ -54,18 +54,10 @@ export default function CoursesPage() {
       if (!res.ok) throw new Error("Failed to fetch courses");
 
       const data = await res.json();
-
-      // ✅ Normalize response to always be an array
       let coursesArray: CourseFromBackend[] = [];
-      if (Array.isArray(data)) {
-        coursesArray = data;
-      } else if (Array.isArray(data.content)) {
-        coursesArray = data.content;
-      } else {
-        console.error("Unexpected API response:", data);
-        coursesArray = [];
-      }
-
+      if (Array.isArray(data)) coursesArray = data;
+      else if (Array.isArray(data.content)) coursesArray = data.content;
+      else coursesArray = [];
       setCourses(coursesArray);
     } catch (err: any) {
       console.error("Error fetching courses:", err);
@@ -121,11 +113,7 @@ export default function CoursesPage() {
             </Card>
 
             {/* Loading / Error */}
-            {isLoading && (
-              <div className="text-center py-12">
-                <p>Loading courses...</p>
-              </div>
-            )}
+            {isLoading && <div className="text-center py-12">Loading courses...</div>}
             {error && (
               <div className="text-center py-12 text-red-500">
                 <p>Error: {error}</p>
@@ -201,13 +189,11 @@ export default function CoursesPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {!isLoading &&
                 !error &&
-                Array.isArray(filteredCourses) &&
                 filteredCourses.map((course) => {
                   const enrollmentPercentage =
                     course.maxStudents && course.maxStudents > 0
                       ? ((course.students ?? 0) / course.maxStudents) * 100
                       : 0;
-
                   return (
                     <Card key={course.id} className="hover:shadow-lg transition-shadow">
                       <CardHeader>
@@ -285,9 +271,7 @@ export default function CoursesPage() {
               <div className="text-center py-12">
                 <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No courses found</h3>
-                <p className="text-gray-600">
-                  Try adjusting your search criteria or add a new course.
-                </p>
+                <p className="text-gray-600">Try adjusting your search criteria or add a new course.</p>
               </div>
             )}
           </div>
