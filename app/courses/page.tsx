@@ -9,17 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
-// ----------------------------------------------------------------------
-// FIX: Dynamic import with SSR disabled for potentially problematic components
-// ----------------------------------------------------------------------
-
 const Card = dynamic(() => import("@/components/ui/card").then((mod) => mod.Card), { ssr: false });
 const CardContent = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardContent), { ssr: false });
 const CardHeader = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardHeader), { ssr: false });
 const CardTitle = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardTitle), { ssr: false });
 const Progress = dynamic(() => import("@/components/ui/progress").then((mod) => mod.Progress), { ssr: false });
 
-// Dynamic imports for lucide-react icons (no SSR)
 const Search = dynamic(() => import("lucide-react").then((m) => m.Search), { ssr: false });
 const Plus = dynamic(() => import("lucide-react").then((m) => m.Plus), { ssr: false });
 const Users = dynamic(() => import("lucide-react").then((m) => m.Users), { ssr: false });
@@ -29,7 +24,6 @@ const BookOpen = dynamic(() => import("lucide-react").then((m) => m.BookOpen), {
 const Edit = dynamic(() => import("lucide-react").then((m) => m.Edit), { ssr: false });
 const Trash2 = dynamic(() => import("lucide-react").then((m) => m.Trash2), { ssr: false });
 
-// Type for backend courses
 interface CourseFromBackend {
   id: number;
   name: string;
@@ -55,12 +49,23 @@ export default function CoursesPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL ;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
       const res = await fetch(`${apiUrl}/api/courses`);
       if (!res.ok) throw new Error("Failed to fetch courses");
 
       const data = await res.json();
-      const coursesArray = Array.isArray(data) ? data : data.content || [];
+
+      // ✅ Normalize response to always be an array
+      let coursesArray: CourseFromBackend[] = [];
+      if (Array.isArray(data)) {
+        coursesArray = data;
+      } else if (Array.isArray(data.content)) {
+        coursesArray = data.content;
+      } else {
+        console.error("Unexpected API response:", data);
+        coursesArray = [];
+      }
+
       setCourses(coursesArray);
     } catch (err: any) {
       console.error("Error fetching courses:", err);
@@ -196,6 +201,7 @@ export default function CoursesPage() {
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {!isLoading &&
                 !error &&
+                Array.isArray(filteredCourses) &&
                 filteredCourses.map((course) => {
                   const enrollmentPercentage =
                     course.maxStudents && course.maxStudents > 0
