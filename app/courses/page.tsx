@@ -9,20 +9,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
+// Dynamically import your UI components with ssr: false
 const Card = dynamic(() => import("@/components/ui/card").then((mod) => mod.Card), { ssr: false });
 const CardContent = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardContent), { ssr: false });
 const CardHeader = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardHeader), { ssr: false });
 const CardTitle = dynamic(() => import("@/components/ui/card").then((mod) => mod.CardTitle), { ssr: false });
 const Progress = dynamic(() => import("@/components/ui/progress").then((mod) => mod.Progress), { ssr: false });
 
-const Search = dynamic(() => import("lucide-react").then((m) => m.Search), { ssr: false });
-const Plus = dynamic(() => import("lucide-react").then((m) => m.Plus), { ssr: false });
-const Users = dynamic(() => import("lucide-react").then((m) => m.Users), { ssr: false });
-const Clock = dynamic(() => import("lucide-react").then((m) => m.Clock), { ssr: false });
-const DollarSign = dynamic(() => import("lucide-react").then((m) => m.DollarSign), { ssr: false });
-const BookOpen = dynamic(() => import("lucide-react").then((m) => m.BookOpen), { ssr: false });
-const Edit = dynamic(() => import("lucide-react").then((m) => m.Edit), { ssr: false });
-const Trash2 = dynamic(() => import("lucide-react").then((m) => m.Trash2), { ssr: false });
+// Dynamically import icons with ssr: false
+const Search = dynamic(() => import("lucide-react").then((mod) => mod.Search), { ssr: false });
+const Plus = dynamic(() => import("lucide-react").then((mod) => mod.Plus), { ssr: false });
+const Users = dynamic(() => import("lucide-react").then((mod) => mod.Users), { ssr: false });
+const Clock = dynamic(() => import("lucide-react").then((mod) => mod.Clock), { ssr: false });
+const DollarSign = dynamic(() => import("lucide-react").then((mod) => mod.DollarSign), { ssr: false });
+const BookOpen = dynamic(() => import("lucide-react").then((mod) => mod.BookOpen), { ssr: false });
+const Edit = dynamic(() => import("lucide-react").then((mod) => mod.Edit), { ssr: false });
+const Trash2 = dynamic(() => import("lucide-react").then((mod) => mod.Trash2), { ssr: false });
 
 interface CourseFromBackend {
   id: number;
