@@ -67,6 +67,55 @@ export default function CreateInvoicePage() {
 
   const getTotal = () => getSubtotal() + getTax();
 
+  // ------------------- API FUNCTION -------------------
+  const saveDraft = async () => {
+    if (!invoiceData.studentId) {
+      alert("Please select a student");
+      return;
+    }
+
+    const payload = {
+      issueDate: invoiceData.issueDate,
+      dueDate: invoiceData.dueDate,
+      memberId: Number(invoiceData.studentId),
+      notes: invoiceData.notes,
+      items: items.map((i) => ({
+        description: i.description,
+        qty: i.quantity,
+        rate: i.rate,
+        amount: i.amount,
+      })),
+      subtotal: getSubtotal(),
+      tax: getTax(),
+      total: getTotal(),
+    };
+
+    try {
+      const response = await fetch("https://new-backend-ve6s7g.fly.dev/api/invoices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Error saving draft:", error);
+        alert("Failed to save draft. Check console for details.");
+        return;
+      }
+
+      const data = await response.json();
+      console.log("Draft saved successfully:", data);
+      alert("Draft saved successfully!");
+    } catch (err) {
+      console.error("Network error:", err);
+      alert("Network error. Could not save draft.");
+    }
+  };
+  // -----------------------------------------------------
+
   return (
     <div className="min-h-screen flex bg-background">
       <Sidebar className="w-64 hidden lg:block" />
@@ -305,10 +354,14 @@ export default function CreateInvoicePage() {
                 </div>
 
                 <div className="mt-6 space-y-3">
-                  <button className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2">
+                  <button
+                    onClick={saveDraft}
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+                  >
                     <Save className="w-4 h-4" />
                     <span>Save Draft</span>
                   </button>
+
                   <button className="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2">
                     <Send className="w-4 h-4" />
                     <span>Send Invoice</span>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser, isAdmin } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -26,15 +26,6 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { UserPlus } from "lucide-react";
 
-interface MemberPayload {
-  fullName: string;
-  email: string;
-  phone: string;
-  course: string;
-  emergencyContact: string;
-  address: string;
-}
-
 interface FormData {
   name: string;
   email: string;
@@ -45,15 +36,8 @@ interface FormData {
 }
 
 interface Course {
-  id: number;
+  id: string;
   name: string;
-  subject: string;
-  instructorName: string;
-  fee: number;
-  schedule: string;
-  duration: string;
-  description: string;
-  createdAt: string;
 }
 
 export default function AddMemberPage() {
@@ -62,6 +46,7 @@ export default function AddMemberPage() {
   const userIsAdmin = isAdmin();
   const { toast } = useToast();
 
+  const [mounted, setMounted] = useState(false); // prevent hydration errors
   const [formData, setFormData] = useState<FormData>({
     name: "",
     email: "",
@@ -70,33 +55,31 @@ export default function AddMemberPage() {
     address: "",
     emergencyContact: "",
   });
-
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [courses, setCourses] = useState<Course[]>([]);
   const [coursesLoading, setCoursesLoading] = useState(true);
 
-  // Redirect check
+  // Mount check for client-only rendering
   useEffect(() => {
-    if (!user) {
-      router.push("/login");
-    } else if (!userIsAdmin) {
-      router.push("/dashboard");
-    } else {
-      setIsLoading(false);
-    }
-  }, [user, userIsAdmin, router]);
+    setMounted(true);
+  }, []);
 
-  // Fetch courses from Next.js API proxy
+  // Redirect if user is not admin
+  useEffect(() => {
+    if (!user && mounted) router.push("/login");
+    else if (!userIsAdmin && mounted) router.push("/dashboard");
+  }, [user, userIsAdmin, mounted, router]);
+
+  // Fetch courses from API
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await fetch("/api/courses");
+        const res = await fetch("https://new-backend-ve6s7g.fly.dev/api/courses");
         if (!res.ok) throw new Error("Failed to fetch courses");
         const data = await res.json();
-        setCourses(data.content || []);
-      } catch (error) {
-        console.error(error);
+        setCourses(data || []);
+      } catch (err) {
+        console.error(err);
         toast({
           title: "Error",
           description: "Could not load courses",
@@ -106,9 +89,8 @@ export default function AddMemberPage() {
         setCoursesLoading(false);
       }
     };
-
-    fetchCourses();
-  }, [toast]);
+    if (mounted) fetchCourses();
+  }, [mounted, toast]);
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -119,7 +101,7 @@ export default function AddMemberPage() {
     setIsSubmitting(true);
 
     try {
-      const payload: MemberPayload = {
+      const payload = {
         fullName: formData.name,
         email: formData.email,
         phone: formData.phone,
@@ -128,15 +110,16 @@ export default function AddMemberPage() {
         address: formData.address,
       };
 
-      const response = await fetch("/api/members", {
+      const response = await fetch("https://new-backend-ve6s7g.fly.dev/api/members", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to register member");
+        const errorText = await response.text();
+        console.error("POST Error:", errorText);
+        throw new Error("Failed to register member");
       }
 
       const newMember = await response.json();
@@ -166,13 +149,7 @@ export default function AddMemberPage() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-background">
-        <p>Loading...</p>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -180,6 +157,7 @@ export default function AddMemberPage() {
         <Sidebar className="w-64 hidden lg:block" />
         <div className="flex-1">
           <Header />
+
           <main className="p-6">
             <div className="mb-8">
               <h1 className="text-3xl font-bold">Add New Member</h1>
@@ -207,9 +185,7 @@ export default function AddMemberPage() {
                         <Input
                           id="name"
                           value={formData.name}
-                          onChange={(e) =>
-                            handleInputChange("name", e.target.value)
-                          }
+                          onChange={(e) => handleInputChange("name", e.target.value)}
                           placeholder="Enter full name"
                           required
                         />
@@ -221,9 +197,7 @@ export default function AddMemberPage() {
                           id="email"
                           type="email"
                           value={formData.email}
-                          onChange={(e) =>
-                            handleInputChange("email", e.target.value)
-                          }
+                          onChange={(e) => handleInputChange("email", e.target.value)}
                           placeholder="Enter email address"
                           required
                         />
@@ -234,9 +208,7 @@ export default function AddMemberPage() {
                         <Input
                           id="phone"
                           value={formData.phone}
-                          onChange={(e) =>
-                            handleInputChange("phone", e.target.value)
-                          }
+                          onChange={(e) => handleInputChange("phone", e.target.value)}
                           placeholder="Enter phone number"
                           required
                         />
@@ -246,45 +218,29 @@ export default function AddMemberPage() {
                         <Label htmlFor="course">Course *</Label>
                         <Select
                           value={formData.course}
-                          onValueChange={(value) =>
-                            handleInputChange("course", value)
-                          }
+                          onValueChange={(value) => handleInputChange("course", value)}
                         >
                           <SelectTrigger>
-                            <SelectValue
-                              placeholder={
-                                coursesLoading
-                                  ? "Loading courses..."
-                                  : "Select a course"
-                              }
-                            />
+                            <SelectValue placeholder={coursesLoading ? "Loading..." : "Select a course"} />
                           </SelectTrigger>
-                          <SelectContent>
-                            {courses.map((course) => (
-                              <SelectItem
-                                key={course.id}
-                                value={course.name}
-                              >
-                                {course.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
+                          {!coursesLoading && (
+                            <SelectContent>
+                              {courses.map((course) => (
+                                <SelectItem key={course.id} value={course.name}>
+                                  {course.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          )}
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="emergencyContact">
-                          Emergency Contact
-                        </Label>
+                        <Label htmlFor="emergencyContact">Emergency Contact</Label>
                         <Input
                           id="emergencyContact"
                           value={formData.emergencyContact}
-                          onChange={(e) =>
-                            handleInputChange(
-                              "emergencyContact",
-                              e.target.value
-                            )
-                          }
+                          onChange={(e) => handleInputChange("emergencyContact", e.target.value)}
                           placeholder="Enter emergency contact number"
                         />
                       </div>
@@ -295,28 +251,17 @@ export default function AddMemberPage() {
                       <Textarea
                         id="address"
                         value={formData.address}
-                        onChange={(e) =>
-                          handleInputChange("address", e.target.value)
-                        }
+                        onChange={(e) => handleInputChange("address", e.target.value)}
                         placeholder="Enter full address"
                         rows={3}
                       />
                     </div>
 
                     <div className="flex gap-4">
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="flex-1"
-                      >
+                      <Button type="submit" disabled={isSubmitting} className="flex-1">
                         {isSubmitting ? "Adding Member..." : "Add Member"}
                       </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => router.push("/members")}
-                        className="flex-1"
-                      >
+                      <Button type="button" variant="outline" onClick={() => router.push("/members")} className="flex-1">
                         Cancel
                       </Button>
                     </div>

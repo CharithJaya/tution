@@ -62,7 +62,7 @@ export default function AddCoursePage() {
     };
 
     try {
-      const res = await fetch("https://new-backend-oia8vq.fly.dev/api/courses", {
+      const res = await fetch("https://new-backend-ve6s7g.fly.dev/api/courses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

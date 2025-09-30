@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -21,30 +21,50 @@ interface Member {
   address: string;
 }
 
-const dummyMembers: Member[] = [
-  { id: 1, fullName: "John Doe", email: "john@example.com", phone: "1234567890", course: "Mathematics", emergencyContact: "9876543210", address: "123 Main St" },
-  { id: 2, fullName: "Jane Smith", email: "jane@example.com", phone: "0987654321", course: "Physics", emergencyContact: "1234567890", address: "456 Elm St" },
-  { id: 3, fullName: "Alice Brown", email: "alice@example.com", phone: "5555555555", course: "Chemistry", emergencyContact: "5555555555", address: "789 Oak St" },
-];
-
 export default function MembersPage() {
   const router = useRouter();
-  const [members, setMembers] = useState<Member[]>(dummyMembers);
+  const [members, setMembers] = useState<Member[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [courseFilter, setCourseFilter] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+
+  // Fetch members from API
+  useEffect(() => {
+    const fetchMembers = async () => {
+      try {
+        const res = await fetch("https://new-backend-ve6s7g.fly.dev/api/members");
+        if (!res.ok) throw new Error("Failed to fetch members");
+        const data = await res.json();
+        setMembers(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMembers();
+  }, []);
 
   const filteredMembers = members.filter((member) => {
     const matchesSearch =
       member.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       member.course.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all"; // Assuming dummy data has no status
+    const matchesStatus = statusFilter === "all"; // Assuming API has no status field
     const matchesCourse = courseFilter === "all" || member.course === courseFilter;
     return matchesSearch && matchesStatus && matchesCourse;
   });
 
   const uniqueCourses = Array.from(new Set(members.map((m) => m.course)));
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Loading members...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">

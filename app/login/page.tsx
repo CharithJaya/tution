@@ -48,8 +48,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-background to-secondary/10 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="relative min-h-screen flex items-center justify-center p-4 bg-gray-900 overflow-hidden">
+      
+      {/* Animated blobs */}
+      <div className="blob absolute inset-0 m-auto w-[350px] h-[350px] border-2 border-white/20 z-0"></div>
+      <div className="blob absolute inset-0 m-auto w-[350px] h-[350px] border-2 border-white/20 z-0"></div>
+      <div className="blob absolute inset-0 m-auto w-[350px] h-[350px] border-2 border-white/20 z-0"></div>
+
+      <Card className="relative w-full max-w-md z-10">
         <CardHeader className="text-center">
           <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
             <GraduationCap className="h-6 w-6 text-primary" />
@@ -95,16 +101,44 @@ export default function LoginPage() {
               {isLoading ? 'Signing in...' : 'Sign In'}
             </Button>
           </form>
-          
+
           <div className="mt-6 p-4 bg-muted/50 rounded-lg">
             <p className="text-sm font-medium mb-2">Demo Accounts:</p>
             <div className="space-y-1 text-xs text-muted-foreground">
-              <p><strong>Admin:</strong> admin@app.com / password</p>
+              <p><strong>Admin:</strong> admin@gmail.com / password</p>
               <p><strong>Student:</strong> charithjc97@gmail.com / password</p>
             </div>
           </div>
         </CardContent>
       </Card>
+
+      {/* Tailwind CSS keyframes for blob animation */}
+      <style jsx global>{`
+        @keyframes morph {
+          0% { border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%; }
+          50% { border-radius: 41% 44% 56% 59% / 38% 62% 63% 37%; }
+          100% { border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%; }
+        }
+
+        .blob {
+          animation: morph 8s ease-in-out infinite;
+          position: absolute;
+          inset: 0;
+          margin: auto;
+          width: 350px;
+          height: 350px;
+          border: 2px solid rgba(255, 255, 255, 0.2);
+          z-index: 0;
+        }
+
+        .blob:nth-child(2) {
+          animation-duration: 12s;
+        }
+
+        .blob:nth-child(3) {
+          animation-duration: 20s;
+        }
+      `}</style>
     </div>
   );
 }

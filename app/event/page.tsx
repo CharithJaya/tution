@@ -30,7 +30,7 @@ export default function CalendarPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch('http://localhost:8080/api/events'); // change if deployed
+        const res = await fetch('https://new-backend-ve6s7g.fly.dev/api/events'); // change if deployed
         if (!res.ok) throw new Error('Failed to fetch events');
         const data: Event[] = await res.json();
         setCalendarEvents(data);
